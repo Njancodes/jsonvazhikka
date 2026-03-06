@@ -2,3 +2,4 @@
 *.zip
 tests/
 run-tests.sh
+test/
