@@ -21,35 +21,60 @@ for(let i = 0; i < contents.length; i++){
 		continue;
 	}
 	if(isReadString){	
-		if(contents[i] === '\\'){
-			if(escChrs.includes(contents[i+1])){
-				foundEscChr = true;
-			}else if(contents[i+1] === 'u'){
-				let hexdecimalRegex = /[a-fA-F0-9]/;
-				strValue+='\\u'
-				//Four hex digits
-				for(let j = 2; j < 6;j++){
-					if(!hexdecimalRegex.test(contents[i+j])){
-						console.log("Error not valid hexadecimal digit");
-						break;	
-					}	
-					strValue += contents[i+j];
-				}
-				i += 5;
-				continue;
-			}else{
-				console.log('Error where is the escape character ?');
-				break;
-			}
-		}else if(contents[i] === '"'){
-			console.log('Not the correct placement of double quotes, use \\" to escape the " character')
+		let code = checkString(contents[i],contents[i+1], i);
+		if(code === 0){
+			foundEscChr = true;
+		}else if(code === 1){
+			i += 5;
+			continue;
+		}else if(code === 2){
+			console.log("Invalid Hex Digits");
+			break;
+		}else if(code === 3){
+			console.log("Invalid Escape Character");
+			break;
+		}else if(code === 4){
+			console.log("Incorrect '\"' Placement");
+			break;
 		}
-		strValue += contents[i];	
 	}else{
 		if(/[a-zA-Z]/.test(contents[i])){
-			console.log('Invalid Keyword')
+			console.log('Invalid Keyword');
 			break;
 		}
 	}
 }
 console.log(strValue);
+
+function checkString(chr, nextChr, slashUidx){ 
+	if(chr === '\\'){
+		if(escChrs.includes(nextChr)){
+			//foundEscChr = true;
+			return 0; //Skip Next Character
+		}else if(nextChr === 'u'){
+			let hexdecimalRegex = /[a-fA-F0-9]/;
+			strValue+='\\u'
+			//Four hex digits
+			let invalidHex = false;
+			for(let j = 2; j < 6;j++){
+				if(!hexdecimalRegex.test(contents[slashUidx+j])){
+					console.log("Error not valid hexadecimal digit");
+					invalidHex = true;
+				}	
+				strValue += contents[slashUidx+j];
+			}
+			if(!invalidHex){  
+				return 1 
+			}else{ 
+				return 2
+			};
+		}else{
+			console.log('Error where is the escape character ?');
+			return 3; //Invalid Escape Character
+		}
+	}else if(chr === '"'){
+		console.log('Not the correct placement of double quotes, use \\" to escape the " character')
+		return 4; //Incorrect '"' Placement
+	}
+	strValue += chr;	
+}
